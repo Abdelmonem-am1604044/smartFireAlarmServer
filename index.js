@@ -4,6 +4,8 @@ const express = require('express'),
   port = process.env.PORT || 3000,
   mongoose = require('mongoose'),
   logger = require('morgan'),
+  http = require('http').createServer(app),
+  io = require('socket.io')(http),
   controller = require('./controllers/index');
 
 app.use(express.json({ extended: false }));
@@ -17,12 +19,15 @@ app.post('/co', controller.submitCO);
 
 app.get('/data', controller.getLatestData);
 
-//Or use 'mongodb://127.0.0.1:27017/smartFireAlarmSystem'
-mongoose.connect('mongodb://localhost:27017/smartFireAlarmSystem', {
+mongoose.connect('mongodb+srv://smartalarm:smart@cluster0.cs2tg.mongodb.net/smart?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+}).catch(error => {console.log(error.message)})
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
 });
 
-app.listen(port, () => {
+http.listen(port, () => {
   console.log(`Server started @ http://localhost:${port}`);
 });
