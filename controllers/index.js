@@ -1,6 +1,7 @@
 const CO = require('../models/CO'),
   Humidity = require('../models/Humidity'),
-  Temperature = require('../models/Temperature');
+  Temperature = require('../models/Temperature'),
+  io = require('socket.io');
 
 const submitHumidity = async (req, res) => {
   try {
@@ -77,7 +78,8 @@ const testAll = async () => {
     const { humidity, co, temperature } = await getLatestData();
 
     if (humidity.value > 50 && temperature.value > 35 && co.value >= 100) {
-      console.log('ALAAAAAM');
+      // console.log('alarm');
+      global.io.sockets.emit('alarm', { humidity, co, temperature });
     }
   } catch (error) {}
 };

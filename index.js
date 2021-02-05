@@ -19,6 +19,7 @@ app.post('/co', controller.submitCO);
 
 app.get('/data', controller.getLatestData);
 
+
 mongoose.connect('mongodb+srv://smartalarm:smart@cluster0.cs2tg.mongodb.net/smart?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -27,6 +28,8 @@ mongoose.connect('mongodb+srv://smartalarm:smart@cluster0.cs2tg.mongodb.net/smar
 io.on('connection', (socket) => {
   console.log('a user connected');
 });
+
+global.io = io;
 
 http.listen(port, () => {
   console.log(`Server started @ http://localhost:${port}`);
