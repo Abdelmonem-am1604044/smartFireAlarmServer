@@ -19,11 +19,14 @@ app.post('/co', controller.submitCO);
 
 app.get('/data', controller.getLatestData);
 
-
-mongoose.connect('mongodb+srv://smartalarm:smart@cluster0.cs2tg.mongodb.net/smart?retryWrites=true&w=majority', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).catch(error => {console.log(error.message)})
+mongoose
+  .connect('mongodb://127.0.0.1:27017/smartFireAlarm', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .catch((error) => {
+    console.log(error.message);
+  });
 
 io.on('connection', (socket) => {
   console.log('a user connected');
