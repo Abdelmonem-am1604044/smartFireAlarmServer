@@ -17,6 +17,8 @@ app.post('/humidity', controller.submitHumidity);
 app.post('/temp', controller.submitTemperature);
 app.post('/co', controller.submitCO);
 
+
+
 app.get('/data', controller.getLatestData);
 
 mongoose
