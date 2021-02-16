@@ -10,7 +10,7 @@ const submitHumidity = async (req, res) => {
 
     const newHumidity = new Humidity({ value, userID: _id });
     await newHumidity.save();
-    await testAll();
+    await testAll(req);
 
     res.status(200).json(newHumidity);
   } catch (error) {
@@ -25,7 +25,7 @@ const submitTemperature = async (req, res) => {
 
     const newTemperature = new Temperature({ value, userID: _id });
     await newTemperature.save();
-    await testAll();
+    await testAll(req);
     res.status(200).json(newTemperature);
   } catch (error) {
     console.log(error.message);
@@ -39,7 +39,7 @@ const submitCO = async (req, res) => {
 
     const newCO = new CO({ value, userID: _id });
     await newCO.save();
-    await testAll();
+    await testAll(req);
 
     res.status(200).json(newCO);
   } catch (error) {
@@ -78,9 +78,9 @@ const getLatestData = async (req, res) => {
   }
 };
 
-const testAll = async () => {
+const testAll = async (req) => {
   try {
-    const { humidity, co, temperature } = await getLatestData();
+    const { humidity, co, temperature } = await getLatestData(req);
 
     if (humidity.value > 50 && temperature.value > 35 && co.value >= 100) {
       // console.log('alarm');
