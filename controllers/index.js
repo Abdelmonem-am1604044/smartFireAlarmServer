@@ -6,8 +6,9 @@ const CO = require('../models/CO'),
 const submitHumidity = async (req, res) => {
   try {
     const { value } = req.body;
+    const { _id } = req.user;
 
-    const newHumidity = new Humidity({ value });
+    const newHumidity = new Humidity({ value, userID: _id });
     await newHumidity.save();
     await testAll();
 
@@ -20,8 +21,9 @@ const submitHumidity = async (req, res) => {
 const submitTemperature = async (req, res) => {
   try {
     const { value } = req.body;
+    const { _id } = req.user;
 
-    const newTemperature = new Temperature({ value });
+    const newTemperature = new Temperature({ value, userID: _id });
     await newTemperature.save();
     await testAll();
     res.status(200).json(newTemperature);
@@ -33,8 +35,9 @@ const submitTemperature = async (req, res) => {
 const submitCO = async (req, res) => {
   try {
     const { value } = req.body;
+    const { _id } = req.user;
 
-    const newCO = new CO({ value });
+    const newCO = new CO({ value, userID: _id });
     await newCO.save();
     await testAll();
 
@@ -46,17 +49,19 @@ const submitCO = async (req, res) => {
 
 const getLatestData = async (req, res) => {
   try {
-    let humidity = await Humidity.find({})
+    const { _id } = req.user;
+
+    let humidity = await Humidity.find({ userID: _id })
       .select('value createdAt')
       .sort({ createdAt: -1 })
       .limit(1);
 
-    let co = await CO.find({})
+    let co = await CO.find({ userID: _id })
       .select('value createdAt')
       .sort({ createdAt: -1 })
       .limit(1);
 
-    let temps = await Temperature.find({})
+    let temps = await Temperature.find({ userID: _id })
       .select('value createdAt')
       .sort({ createdAt: -1 })
       .limit(1);

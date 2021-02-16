@@ -6,6 +6,10 @@ const COSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    userID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user'
+    },
   },
   {
     timestamps: true,

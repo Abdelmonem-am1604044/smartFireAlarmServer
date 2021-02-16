@@ -4,6 +4,8 @@ const express = require('express'),
   port = process.env.PORT || 3000,
   mongoose = require('mongoose'),
   logger = require('morgan'),
+  authRoutes = require('./routes/authRoutes'),
+  requireAuth = require('./middlewares/requireAuth'),
   http = require('http').createServer(app),
   io = require('socket.io')(http),
   controller = require('./controllers/index');
@@ -11,15 +13,16 @@ const express = require('express'),
 app.use(express.json({ extended: false }));
 
 app.use(logger('dev'));
+app.use(authRoutes);
 
 // define routes
-app.post('/humidity', controller.submitHumidity);
-app.post('/temp', controller.submitTemperature);
-app.post('/co', controller.submitCO);
+app.post('/humidity', requireAuth, controller.submitHumidity);
+app.post('/temp', requireAuth, controller.submitTemperature);
+app.post('/co', requireAuth, controller.submitCO);
 
 
 
-app.get('/data', controller.getLatestData);
+app.get('/data', requireAuth, controller.getLatestData);
 
 mongoose
   .connect('mongodb://127.0.0.1:27017/smartFireAlarm', {
