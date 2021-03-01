@@ -16,13 +16,11 @@ app.use(logger('dev'));
 app.use(authRoutes);
 
 // define routes
-app.post('/humidity', requireAuth, controller.submitHumidity);
-app.post('/temp', requireAuth, controller.submitTemperature);
-app.post('/co', requireAuth, controller.submitCO);
+app.post('/new_record/:key', controller.submitRecord);
 
+app.get('/records', requireAuth, controller.getLatestData);
 
-
-app.get('/data', requireAuth, controller.getLatestData);
+// app.get('/civil_defense',)
 
 mongoose
   .connect('mongodb://127.0.0.1:27017/smartFireAlarm', {

@@ -1,38 +1,30 @@
-const User = require('../models/User'),
-	jwt = require('jsonwebtoken'),
-	router = require('express').Router();
+const Sensor = require('../models/Sensor'),
+  jwt = require('jsonwebtoken'),
+  router = require('express').Router();
 
-router.post('/signup', async (req, res) => {
-	const { username, password } = req.body;
-	try {
-		let user = new User({ username, password });
-		await user.save();
-		const token = jwt.sign({ userId: user._id }, 'MY_SECRET_KEY');
-		res.send({ token });
-	} catch (error) {
-		return res.status(422).send(error.message);
-	}
-});
+router.post('/register/:key', async (req, res) => {
+  const { key } = req.params;
+  try {
+    let sensor = await Sensor.findOne({ key }),
+      token;
 
-router.post('/signin', async (req, res) => {
-	const { username, password } = req.body;
+    if (!sensor) {
+      let radius = 0.098937,
+        middleLatitude = 25.248236,
+        middleLongitude = 51.434599,
+        angle = Math.random() * Math.PI * 2,
+        latitude = middleLatitude + Math.cos(angle) * radius,
+        longitude = middleLongitude + Math.sin(angle) * radius;
 
-	if (!username || !password) {
-		return res.status(422).send({ error: 'Must be Logged in' });
-	}
-
-	const user = await User.findOne({ username });
-	if (!user) {
-		return res.status(422).send({ error: 'User Was not found' });
-	}
-
-	try {
-		await user.comparePassword(password);
-		const token = jwt.sign({ userId: user._id }, 'MY_SECRET_KEY');
-		res.send({ token });
-	} catch (error) {
-		return res.status(422).send({ error: 'Invalid Password or Username' });
-	}
+      sensor = new Sensor({ key, latitude, longitude });
+      await sensor.save();
+    }
+	
+    token = jwt.sign({ sensorId: sensor._id }, 'MY_SECRET_KEY');
+    res.send({ token });
+  } catch (error) {
+    return res.status(422).send(error.message);
+  }
 });
 
 module.exports = router;

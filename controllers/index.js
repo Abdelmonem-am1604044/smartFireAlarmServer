@@ -1,47 +1,30 @@
-const CO = require('../models/CO'),
-  Humidity = require('../models/Humidity'),
-  Temperature = require('../models/Temperature'),
+const Record = require('../models/Record'),
+  Sensor = require('../models/Sensor'),
   io = require('socket.io');
 
-const submitHumidity = async (req, res) => {
+const submitRecord = async (req, res) => {
   try {
-    const { value } = req.body;
-    const { _id } = req.user;
+    const { co, temperature, humidity } = req.body;
+    const { key } = req.params;
 
-    const newHumidity = new Humidity({ value, userID: _id });
-    await newHumidity.save();
+    let sensor = await Sensor.findOne({ key });
+
+    if (!sensor) {
+      res.status(400).send('This sensor is not registered yet');
+    }
+
+    let record = new Record({
+      co,
+      temperature,
+      humidity,
+      sensorId: sensor._id,
+    });
+    await record.save();
+
+    req.sensor = sensor;
     await testAll(req);
 
-    res.status(200).json(newHumidity);
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-const submitTemperature = async (req, res) => {
-  try {
-    const { value } = req.body;
-    const { _id } = req.user;
-
-    const newTemperature = new Temperature({ value, userID: _id });
-    await newTemperature.save();
-    await testAll(req);
-    res.status(200).json(newTemperature);
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-const submitCO = async (req, res) => {
-  try {
-    const { value } = req.body;
-    const { _id } = req.user;
-
-    const newCO = new CO({ value, userID: _id });
-    await newCO.save();
-    await testAll(req);
-
-    res.status(200).json(newCO);
+    res.status(200).json(record);
   } catch (error) {
     console.log(error.message);
   }
@@ -49,30 +32,15 @@ const submitCO = async (req, res) => {
 
 const getLatestData = async (req, res) => {
   try {
-    const { _id } = req.user;
+    const { _id } = req.sensor;
 
-    let humidity = await Humidity.find({ userID: _id })
-      .select('value createdAt')
+    let data = await Record.find({ sensorId: _id })
       .sort({ createdAt: -1 })
-      .limit(1);
+      .limit(1)
+      .populate('sensorId');
 
-    let co = await CO.find({ userID: _id })
-      .select('value createdAt')
-      .sort({ createdAt: -1 })
-      .limit(1);
-
-    let temps = await Temperature.find({ userID: _id })
-      .select('value createdAt')
-      .sort({ createdAt: -1 })
-      .limit(1);
-
-    let data = {
-      humidity: humidity[0],
-      co: co[0],
-      temperature: temps[0],
-    };
-    if (res) res.status(200).json(data);
-    return data;
+    if (res) res.status(200).json(data[0]);
+    return data[0];
   } catch (error) {
     console.log(error.message);
   }
@@ -82,11 +50,10 @@ const testAll = async (req) => {
   try {
     const { humidity, co, temperature } = await getLatestData(req);
 
-    if (humidity.value > 50 && temperature.value > 35 && co.value >= 100) {
-      // console.log('alarm');
+    if (humidity > 50 && temperature > 35 && co >= 100) {
       global.io.sockets.emit('alarm', { humidity, co, temperature });
     }
   } catch (error) {}
 };
 
-module.exports = { submitCO, submitHumidity, submitTemperature, getLatestData };
+module.exports = { submitRecord, getLatestData };

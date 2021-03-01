@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken'),
-  User = require('../models/User');
+  Sensor = require('../models/Sensor');
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
@@ -14,9 +14,9 @@ module.exports = (req, res, next) => {
       return res.status(401).send({ error: 'You must be logged in first' });
     }
 
-    const { userId } = payload,
-      user = await User.findById(userId);
-    req.user = user;
+    const { sensorId } = payload,
+      sensor = await Sensor.findOne({ _id: sensorId });
+    req.sensor = sensor;
     next();
   });
 };
