@@ -24,6 +24,8 @@ const submitRecord = async (req, res) => {
     req.sensor = sensor;
     await testAll(req);
 
+    record.sensorId = sensor;
+
     res.status(200).json(record);
   } catch (error) {
     console.log(error.message);
@@ -51,9 +53,41 @@ const testAll = async (req) => {
     const { humidity, co, temperature } = await getLatestData(req);
 
     if (humidity > 50 && temperature > 35 && co >= 100) {
-      global.io.sockets.emit('alarm', { humidity, co, temperature });
+      global.io.sockets.to(req.sensor.key).emit('sensor', {
+        humidity,
+        co,
+        temperature,
+        sensorId: req.sensor,
+      });
+      global.io.sockets.to('admin').emit('admin', {
+        humidity,
+        co,
+        temperature,
+        sensorId: req.sensor,
+      });
     }
   } catch (error) {}
 };
 
-module.exports = { submitRecord, getLatestData };
+const validateCivilDefense = async (req, res) => {
+  try {
+    let newSensors = [];
+    const { code } = req.body;
+    if (code != 123) res.status(422).send({ error: 'Invalid Passcode' });
+
+    const sensors = await Sensor.find();
+    // console.log(sensors);
+    for (let i = 0; i < sensors.length; i++) {
+      let data = await Record.find({ sensorId: sensors[i]._id })
+        .sort({ createdAt: -1 })
+        .limit(1)
+        .populate('sensorId');
+
+      newSensors.push({ ...data[0], ...sensors[i]._doc });
+    }
+
+    res.status(200).json(newSensors);
+  } catch (error) {}
+};
+
+module.exports = { submitRecord, getLatestData, validateCivilDefense };

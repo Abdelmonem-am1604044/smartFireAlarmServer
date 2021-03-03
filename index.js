@@ -8,7 +8,7 @@ const express = require('express'),
   requireAuth = require('./middlewares/requireAuth'),
   http = require('http').createServer(app),
   io = require('socket.io')(http),
-  controller = require('./controllers/index');
+  controller = require('./controllers/controller');
 
 app.use(express.json({ extended: false }));
 
@@ -20,7 +20,7 @@ app.post('/new_record/:key', controller.submitRecord);
 
 app.get('/records', requireAuth, controller.getLatestData);
 
-// app.get('/civil_defense',)
+app.post('/civil_defense', controller.validateCivilDefense);
 
 mongoose
   .connect('mongodb://127.0.0.1:27017/smartFireAlarm', {
@@ -32,7 +32,9 @@ mongoose
   });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log(socket.handshake.query.type);
+  socket.join(socket.handshake.query.type);
+  // console.log('a user connected');
 });
 
 global.io = io;
