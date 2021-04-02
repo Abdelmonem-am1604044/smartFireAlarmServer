@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const RecordSchema = mongoose.Schema(
   {
@@ -14,9 +14,17 @@ const RecordSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    humidity: {
+      type: Number,
+      required: true,
+    },
+    headCount: {
+      type: Number,
+      required: true,
+    },
     sensorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Sensor',
+      ref: "Sensor",
     },
   },
   {
@@ -24,6 +32,6 @@ const RecordSchema = mongoose.Schema(
   }
 );
 
-const Record = mongoose.model('record', RecordSchema);
+const Record = mongoose.model("record", RecordSchema);
 
 module.exports = Record;

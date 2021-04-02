@@ -4,7 +4,7 @@ const Record = require('../models/Record'),
 
 const submitRecord = async (req, res) => {
   try {
-    const { co, temperature, humidity } = req.body;
+    const { co, temperature, humidity,headCount } = req.body;
     const { key } = req.params;
 
     let sensor = await Sensor.findOne({ key });
@@ -17,6 +17,7 @@ const submitRecord = async (req, res) => {
       co,
       temperature,
       humidity,
+      headCount,
       sensorId: sensor._id,
     });
     await record.save();
@@ -50,19 +51,21 @@ const getLatestData = async (req, res) => {
 
 const testAll = async (req) => {
   try {
-    const { humidity, co, temperature } = await getLatestData(req);
+    const { humidity, co, temperature,headCount } = await getLatestData(req);
 
     if (humidity > 50 && temperature > 35 && co >= 100) {
       global.io.sockets.to(req.sensor.key).emit('sensor', {
         humidity,
         co,
         temperature,
+        headCount,
         sensorId: req.sensor,
       });
       global.io.sockets.to('admin').emit('admin', {
         humidity,
         co,
         temperature,
+        headCount,
         sensorId: req.sensor,
       });
     }
