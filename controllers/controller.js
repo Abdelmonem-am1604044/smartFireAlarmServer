@@ -1,16 +1,16 @@
-const Record = require('../models/Record'),
-  Sensor = require('../models/Sensor'),
-  io = require('socket.io');
+const Record = require("../models/Record"),
+  Sensor = require("../models/Sensor"),
+  io = require("socket.io");
 
 const submitRecord = async (req, res) => {
   try {
-    const { co, temperature, humidity,headCount } = req.body;
+    const { co, temperature, humidity, headCount, isFire } = req.body;
     const { key } = req.params;
 
     let sensor = await Sensor.findOne({ key });
 
     if (!sensor) {
-      res.status(400).send('This sensor is not registered yet');
+      res.status(400).send("This sensor is not registered yet");
     }
 
     let record = new Record({
@@ -23,7 +23,14 @@ const submitRecord = async (req, res) => {
     await record.save();
 
     req.sensor = sensor;
-    await testAll(req);
+    await sendData({
+      co,
+      temperature,
+      humidity,
+      headCount,
+      isFire,
+      sensorId: sensor,
+    });
 
     record.sensorId = sensor;
 
@@ -40,7 +47,7 @@ const getLatestData = async (req, res) => {
     let data = await Record.find({ sensorId: _id })
       .sort({ createdAt: -1 })
       .limit(1)
-      .populate('sensorId');
+      .populate("sensorId");
 
     if (res) res.status(200).json(data[0]);
     return data[0];
@@ -49,26 +56,39 @@ const getLatestData = async (req, res) => {
   }
 };
 
-const testAll = async (req) => {
+const sendData = async ({
+  co,
+  temperature,
+  humidity,
+  headCount,
+  isFire,
+  sensorId,
+}) => {
   try {
-    const { humidity, co, temperature,headCount } = await getLatestData(req);
-
-    if (humidity > 50 && temperature > 35 && co >= 100) {
-      global.io.sockets.to(req.sensor.key).emit('sensor', {
-        humidity,
-        co,
-        temperature,
-        headCount,
-        sensorId: req.sensor,
-      });
-      global.io.sockets.to('admin').emit('admin', {
-        humidity,
-        co,
-        temperature,
-        headCount,
-        sensorId: req.sensor,
-      });
-    }
+    console.log({
+      humidity,
+      co,
+      temperature,
+      headCount,
+      sensorId,
+      isFire,
+    });
+    global.io.sockets.to(sensorId.key).emit("sensor", {
+      humidity,
+      co,
+      temperature,
+      headCount,
+      sensorId,
+      isFire,
+    });
+    global.io.sockets.to("admin").emit("admin", {
+      humidity,
+      co,
+      temperature,
+      headCount,
+      sensorId,
+      isFire,
+    });
   } catch (error) {}
 };
 
@@ -76,7 +96,7 @@ const validateCivilDefense = async (req, res) => {
   try {
     let newSensors = [];
     const { code } = req.body;
-    if (code != 123) res.status(422).send({ error: 'Invalid Passcode' });
+    if (code != 123) res.status(422).send({ error: "Invalid Passcode" });
 
     const sensors = await Sensor.find();
     // console.log(sensors);
@@ -84,7 +104,7 @@ const validateCivilDefense = async (req, res) => {
       let data = await Record.find({ sensorId: sensors[i]._id })
         .sort({ createdAt: -1 })
         .limit(1)
-        .populate('sensorId');
+        .populate("sensorId");
 
       newSensors.push({ ...data[0], ...sensors[i]._doc });
     }
