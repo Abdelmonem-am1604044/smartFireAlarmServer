@@ -65,14 +65,6 @@ const sendData = async ({
   sensorId,
 }) => {
   try {
-    console.log({
-      humidity,
-      co,
-      temperature,
-      headCount,
-      sensorId,
-      isFire,
-    });
     global.io.sockets.to(sensorId.key).emit("sensor", {
       humidity,
       co,
